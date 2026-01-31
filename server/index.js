@@ -4,7 +4,9 @@ require('dotenv').config()
 const cors = require('cors')
 const app = express()
 const port = process.env.PORT
-app.use(cors())
+app.use(cors({
+    origin: ["http://localhost:5173"]
+}))
 app.use(express.json())
 app.get("/", (req, res) => {
     res.send("Server is active")
@@ -25,6 +27,23 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        const twkits = client.db(process.env.DB)
+        const components = twkits.collection("components")
+
+        // api to get componets name for sidebar
+        app.get("/components/names", async (req, res) => {
+            try {
+                const query = await components.find({}, {
+                    projection: { name: 1 }
+                }).toArray()
+                res.status(200).json(query)
+            } catch (err) {
+                res.status(404).json({ message: "Data not found" })
+            }
+
+        })
+
     } finally {
 
     }
